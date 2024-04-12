@@ -1,0 +1,88 @@
+version: '3.9'
+
+services:
+  aj-user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /var/www/html/aj/uat/aj-user:/var/www/html/aj/uat/aj-user/
+    networks:
+      - aj-network
+    restart: unless-stopped
+    labels:
+      io.portainer.accesscontrol.teams: uat
+
+  aj-mob:
+    build:
+      context: .
+      dockerfile: ./m/Dockerfile
+    volumes:
+      - ./m:/var/www/html/aj/uat/aj-user/m/
+    networks:
+      - aj-network
+    restart: unless-stopped
+    labels:
+      io.portainer.accesscontrol.teams: uat
+
+  aj-wap:
+    build:
+      context: .
+      dockerfile: ./wap/Dockerfile
+    volumes:
+      - ./wap:/var/www/html/aj/uat/aj-user/wap/
+    networks:
+      - aj-network
+    restart: unless-stopped
+    labels:
+      io.portainer.accesscontrol.teams: uat
+
+  aj-admin:
+    build:
+      context: .
+      dockerfile: ./../aj-admin/Dockerfile
+    volumes:
+      - ./../aj-admin:/var/www/html/aj/uat/aj-admin/
+    networks:
+      - aj-network
+    restart: unless-stopped
+    labels:
+      io.portainer.accesscontrol.teams: uat
+
+  aj-api:
+    build:
+      context: .
+      dockerfile: ./../aj-api/Dockerfile
+    volumes:
+      - ./../aj-api:/var/www/html/aj/uat/aj-api
+    networks:
+      - aj-network
+    restart: unless-stopped
+    labels:
+      io.portainer.accesscontrol.teams: uat
+
+  apache-httpd:
+    build:
+      context: .
+      dockerfile: ./apache/Dockerfile
+    volumes:
+      - .:/var/www/html/aj/uat/aj-user/
+      - ./m:/var/www/html/aj/uat/aj-user/m/
+      - ./wap:/var/www/html/aj/uat/aj-user/wap/
+      - ./../aj-admin:/var/www/html/aj/uat/aj-admin/
+      - ./../aj-api:/var/www/html/aj/uat/aj-api/
+    ports:
+      - "7000:80"
+      - "7001:81"
+      - "7002:82"
+      - "7003:83"
+      - "7004:84"
+    networks:
+      - aj-network
+    restart: unless-stopped
+    labels:
+      io.portainer.accesscontrol.teams: uat
+
+networks:
+  aj-network:
+    external: true

@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    
+    environment {
+        SERVER_LOCATION = '/var/www/html/aj/uat/aj-user/' // Change it based on project location
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        
+        stage('Deploy to Server') {
+            steps {
+                sh "cp -r $WORKSPACE/* $SERVER_LOCATION"
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    // Run SonarScanner
+                    script {
+                        def scannerHome = tool 'SonarScanner'
+                        sh "${scannerHome}/bin/sonar-scanner"
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success {
+            script {
+                def buildNumber = currentBuild.number
+                slackSend color: 'good', message: "Congratulations! The build for aj-user on branch dev was successful.\nThis was build number: $buildNumber\nFor detailed information, please check the console output [here](${CONSOLE_OUTPUT_URL}).\nKeep up the good work!", tokenCredentialId: 'slack', channel: 'aj-jenkins'
+            }
+        }
+        failure {
+            script {
+                def buildNumber = currentBuild.number
+                slackSend color: 'danger', message: "The build for aj-user on branch dev has failed.\nThis was build number: $buildNumber\nFor detailed information, please check the console output [here](${CONSOLE_OUTPUT_URL}).\nThank you.", tokenCredentialId: 'slack', channel: 'aj-jenkins'
+            }
+        }
+    }
+}
